@@ -2,54 +2,57 @@ package service
 
 import (
 	"awesomeProject/pb"
+	"context"
 	"errors"
-	"fmt"
-	"sync"
-
-	"github.com/jinzhu/copier"
+	"github.com/google/uuid"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+	"log"
 )
 
-var ErrAlreadyExists = errors.New("record already exists")
-
-type UserStore interface {
-	Save(user *pb.User) error
-	Find(id string) (*pb.User, error)
+type UserServer struct {
+	userStore UserStore
 }
 
-type InMemoryUserStore struct {
-	mutex sync.RWMutex
-	data map[string]*pb.User
-}
-
-func NewUserStore() *InMemoryUserStore {
-	return &InMemoryUserStore{
-		data: map[string]*pb.User{},
+func NewUserServer(userStore UserStore) *UserServer {
+	return &UserServer{
+		userStore,
 	}
 }
 
-func (store *InMemoryUserStore) Save(user *pb.User) error {
-	store.mutex.Lock()
-	defer store.mutex.Unlock()
+func (server *UserServer) CreateUser(
+	ctx context.Context,
+	req *pb.CreateUserRequest,
+) (*pb.CreateUserResponse, error) {
+	user := req.GetUser()
+	log.Printf("receive a create-user request with id: %s", user.Id)
 
-	if store.data[user.Id] != nil {
-		return ErrAlreadyExists
+	if len(user.Id) > 0 {
+		//check if id is a UUID
+		if _, err := uuid.Parse(user.Id); err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "user ID is not a valid UUID: %v", err)
+		}
+	} else {
+		id, err := uuid.NewRandom()
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "cant generate new user ID: %v", err)
+		}
+		user.Id = id.String()
 	}
 
-	other, err := deepCopy(user)
+	err := server.userStore.Save(user)
 	if err != nil {
-		return err
+		code := codes.Internal
+		if errors.Is(err, ErrAlreadyExists) {
+			code = codes.AlreadyExists
+		}
+		return nil, status.Errorf(code, "cant save user to the store: %v", err)
 	}
 
-	store.data[other.Id] = other
-	return nil
-}
+	log.Printf("save user with id: %v", user.Id)
 
-func deepCopy(user *pb.User) (*pb.User, error) {
-	other := &pb.User{}
-
-	err := copier.Copy(other, user)
-	if err != nil {
-		fmt.Errorf("cant copy user data: %w", err)
+	res := &pb.CreateUserResponse{
+		Id: user.Id,
 	}
-	return other, nil
+	return res, nil
 }
