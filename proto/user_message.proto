@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package awesome.project;
+option go_package = ".;pb";
+
+import "rank_message.proto";
+
+message User {
+  string id = 1;
+  string first_name = 2;
+  string middle_name = 3;
+  string last_name = 4;
+  int32 age = 5;
+  int32 gender = 6;
+  int32 role = 7;
+  float weight = 8;
+  float high = 9;
+  string position = 10;
+  Rank rank = 11;
+}

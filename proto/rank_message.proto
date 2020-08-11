@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package awesome.project;
+option go_package = ".;pb";
+
+import "language_message.proto";
+import "framework_message.proto";
+
+message Rank {
+  float rank = 1;
+  repeated Language language = 2;
+  repeated FrameWork framework = 3;
+}

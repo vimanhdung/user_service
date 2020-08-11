@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package awesome.project;
+option go_package = ".;pb";
+
+message Language {
+  enum Lang {
+    PHP = 0;
+    JAVA = 1;
+    GO = 2;
+    PYTHON = 3;
+    RUBY = 4;
+    JAVASCRIPT = 5;
+    C_PLUS_PLUS = 6;
+    SCALA = 7;
+    SWIFT = 8;
+  }
+
+  Lang language = 1;
+  float level = 2;
+  int32 years = 3;
+}

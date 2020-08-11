@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package awesome.project;
+option go_package = ".;pb";
+
+message FrameWork {
+  enum FW {
+    RUBY_ON_RAILS = 0;
+    SYMPHONY = 1;
+    ANGULAR_JS = 2;
+    REACT_JS = 3;
+    CAKE = 4;
+    NODE = 5;
+    YII = 6;
+    LARAVEL = 7;
+    MAGENTO = 8;
+    SPRING = 9;
+    DRUPAL = 10;
+  }
+  FW framwork = 1;
+  float level = 2;
+  int32 years = 3;
+}
