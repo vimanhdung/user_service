@@ -4,11 +4,17 @@ package awesome.project;
 option go_package = ".;pb";
 
 import "user_message.proto";
+import "filter_message.proto";
 
 message CreateUserRequest { User user = 1; }
 
 message CreateUserResponse { string id = 1; }
 
+message SearchUserRequest { Filter filter = 1; }
+
+message SearchUserResponse { User user = 1; }
+
 service UserService {
   rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
+  rpc SearchUser(SearchUserRequest) returns (stream SearchUserResponse);
 }

@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package awesome.project;
+option go_package = ".;pb";
+
+message Filter {
+  int32 min_age = 1;
+  int32 max_age = 2;
+  int32 gender = 3;
+  int32 role = 4;
+  string position = 5;
+  float rank = 6;
+}

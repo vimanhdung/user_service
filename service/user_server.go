@@ -56,3 +56,27 @@ func (server *UserServer) CreateUser(
 	}
 	return res, nil
 }
+
+func (server *UserServer) SearchUser(req *pb.SearchUserRequest, stream pb.UserService_SearchUserServer) error {
+	filter := req.GetFilter()
+	log.Printf("receive and request search User with filter: %v", filter)
+	err := server.userStore.Search(
+			*filter,
+		func(user *pb.User) error {
+			err := stream.Send(&pb.SearchUserResponse{
+				User: user,
+			})
+			if err != nil {
+				log.Fatalf("has error when send stream response: %v", err)
+				return err
+			}
+			return nil
+		},
+	)
+
+	if err != nil {
+		return status.Errorf(codes.Internal, "has error when stream data user when search: %v", err)
+	}
+
+	return nil
+}

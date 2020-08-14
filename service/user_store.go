@@ -14,6 +14,7 @@ var ErrAlreadyExists = errors.New("record already exists")
 type UserStore interface {
 	Save(user *pb.User) error
 	Find(id string) (*pb.User, error)
+	Search(filter pb.Filter, found func(user *pb.User) error) error
 }
 
 type InMemoryUserStore struct {
@@ -68,4 +69,31 @@ func deepCopy(user *pb.User) (*pb.User, error) {
 		return nil, fmt.Errorf("cant copy user data: %w", err)
 	}
 	return other, nil
+}
+
+func (store *InMemoryUserStore) Search(filter pb.Filter, found func(user *pb.User) error) error {
+	store.mutex.Lock()
+	defer store.mutex.Unlock()
+
+	//process search
+	for _, user := range store.data{
+		ok := isQualify(filter, *user)
+		if ok {
+			//deep copy value
+			other, err := deepCopy(user)
+			if err != nil {
+				return err
+			}
+			found(other)
+		}
+	}
+
+	return nil
+}
+
+func isQualify(filter pb.Filter, user pb.User) bool {
+	//if filter.Rank < user.Rank.Rank { return false}
+	//if filter.Gender != int32(user.Gender.Number()) { return false }
+	if filter.MinAge > user.Age || filter.MaxAge < user.Age { return false }
+	return true
 }
